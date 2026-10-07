@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-white select-none">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Miner: Evolutionary Adventure</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Retro Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'VT323', monospace;
+      background-color: #080c14;
+      background-image: 
+        radial-gradient(#151f32 15%, transparent 16%),
+        radial-gradient(#151f32 15%, transparent 16%);
+      background-size: 16px 16px;
+      background-position: 0 0, 8px 8px;
+    }
+
+    .font-pixel { font-family: 'Press Start 2P', monospace; }
+    .font-silkscreen { font-family: 'Silkscreen', cursive; }
+
+    /* 8-Bit Retro Panel Frames */
+    .pixel-panel {
+      background-color: #172033;
+      border: 4px solid #060911;
+      box-shadow: 
+        inset -4px -4px 0px #0e1524,
+        inset 4px 4px 0px #2a3a5c,
+        0 6px 0px rgba(0, 0, 0, 0.8);
+      border-radius: 2px;
+    }
+
+    .pixel-panel-header {
+      background-color: #101726;
+      border-bottom: 4px solid #060911;
+      box-shadow: inset 0 3px 0px #243350;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .pixel-inset-box {
+      background-color: #0b101a;
+      border: 3px solid #030508;
+      box-shadow: 
+        inset 3px 3px 0px #000000,
+        inset -2px -2px 0px #182338;
+    }
+
+    /* Pixel Buttons */
+    .pixel-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.65rem;
+      border: 3px solid #000000;
+      box-shadow: 
+        inset -3px -3px 0px rgba(0, 0, 0, 0.45),
+        inset 3px 3px 0px rgba(255, 255, 255, 0.35),
+        0 4px 0px #000000;
+      transition: transform 0.05s, box-shadow 0.05s;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .pixel-btn:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 
+        inset -3px -3px 0px rgba(0, 0, 0, 0.45),
+        inset 3px 3px 0px rgba(255, 255, 255, 0.35),
+        0 1px 0px #000000;
+    }
+
+    .pixel-btn-green { background-color: #22c55e; color: #022c22; text-shadow: 0 1px 0 #86efac; }
+    .pixel-btn-green:hover:not(:disabled) { background-color: #4ade80; }
+
+    .pixel-btn-blue { background-color: #3b82f6; color: #0f172a; }
+    .pixel-btn-blue:hover:not(:disabled) { background-color: #60a5fa; }
+
+    .pixel-btn-amber { background-color: #f59e0b; color: #451a03; }
+    .pixel-btn-amber:hover:not(:disabled) { background-color: #fbbf24; }
+
+    .pixel-btn-red { background-color: #ef4444; color: #450a0a; }
+    .pixel-btn-red:hover:not(:disabled) { background-color: #f87171; }
+
+    .pixel-btn-purple { background-color: #a855f7; color: #3b0764; }
+    .pixel-btn-purple:hover:not(:disabled) { background-color: #c084fc; }
+
+    .pixel-btn-dark { background-color: #334155; color: #f8fafc; }
+    .pixel-btn-dark:hover:not(:disabled) { background-color: #475569; }
+
+    .pixel-btn:disabled {
+      background-color: #1f2937 !important;
+      color: #4b5563 !important;
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.3), 0 2px 0px #000;
+    }
+
+    /* Cooldown Overlay Animation */
+    .cooldown-overlay {
+      background: rgba(0, 0, 0, 0.75);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.85rem;
+      color: #fef08a;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #060911; }
+    ::-webkit-scrollbar-thumb { background: #243350; border: 2px solid #060911; }
+    ::-webkit-scrollbar-thumb:hover { background: #384e7a; }
+  </style>
+</head>
+
+<body class="h-full flex flex-col justify-between overflow-x-hidden text-slate-100 antialiased">
+
+  <!-- ================= TOP HEADER BAR ================= -->
+  <header class="bg-slate-900 border-b-4 border-black px-4 py-2 z-20 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      
+      <!-- Game Logo -->
+      <div class="flex items-center space-x-3">
+        <svg class="w-8 h-8 drop-shadow-[0_3px_0_rgba(0,0,0,1)]" viewBox="0 0 16 16" fill="none" shape-rendering="crispEdges">
+          <path d="M5 2H11V4H13V6H15V8H13V10H11V12H9V14H7V12H5V10H3V8H1V6H3V4H5V2Z" fill="#a855f7"/>
+          <path d="M6 4H10V6H12V8H10V10H8V12H6V10H4V8H6V4Z" fill="#38bdf8"/>
+          <path d="M7 5H9V7H7V5Z" fill="#fef08a"/>
+        </svg>
+        <h1 class="font-pixel text-xs sm:text-base text-cyan-400 tracking-wider drop-shadow-[2px_2px_0px_#000]">
+          Pixel Miner: <span class="text-amber-400">Evolutionary Adventure</span> ⛏️
+        </h1>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center space-x-2">
+        <button id="soundToggleBtn" onclick="game.toggleSound()" class="pixel-btn pixel-btn-dark px-2.5 py-1 text-[10px]">
+          <span id="soundIcon" class="mr-1">🔊</span> <span id="soundText" class="hidden sm:inline">SOUND</span>
+        </button>
+        <button onclick="game.openHelpModal()" class="pixel-btn pixel-btn-amber px-2.5 py-1 text-[10px]">
+          HELP ?
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN GAME CONTENT AREA ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+
+    <!-- ================= LEFT PANEL: EVOLUTION & STATS ================= -->
+    <section class="lg:col-span-3 pixel-panel flex flex-col h-full min-h-[440px]">
+      <div class="pixel-panel-header px-3 py-1.5 text-[11px] text-slate-200 text-center tracking-wider">
+        🛡️ MINER EVOLUTION
+      </div>
+
+      <div class="p-3 flex-1 flex flex-col space-y-2.5">
+        
+        <!-- Character Armor Tier Card -->
+        <div class="pixel-inset-box p-2.5 text-center relative overflow-hidden flex flex-col items-center">
+          <div class="text-[9px] uppercase text-slate-400 font-pixel mb-1">Current Armor Tier</div>
+          <div id="tierName" class="font-pixel text-xs sm:text-sm text-amber-400 drop-shadow-[2px_2px_0px_#000]">
+            Lv 1: Novice Leather
+          </div>
+          <div id="biomeTitle" class="text-xs font-silkscreen text-cyan-300 mt-1">
+            🌍 Subterranean Dirt Layer
+          </div>
+          
+          <!-- Level XP Progress Bar -->
+          <div class="w-full mt-2.5">
+            <div class="flex justify-between text-[10px] font-pixel text-slate-300 mb-1">
+              <span>LEVEL <span id="playerLevelVal">1</span></span>
+              <span id="xpText">0 / 100 XP</span>
+            </div>
+            <div class="w-full bg-slate-950 h-3 border-2 border-black rounded-none p-0.5">
+              <div id="xpBar" class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full w-0 transition-all duration-300"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pixels Counter Box -->
+        <div class="pixel-inset-box p-2.5 text-center">
+          <div class="text-[9px] uppercase text-slate-400 font-pixel mb-1">Total Pixels</div>
+          <div id="pixelsVal" class="font-pixel text-lg sm:text-xl text-amber-400 break-all drop-shadow-[2px_2px_0px_#000]">
+            0
+          </div>
+        </div>
+
+        <!-- Stats Breakdown -->
+        <div class="space-y-1.5 text-sm border-t-2 border-b-2 border-slate-700/60 py-2 font-mono">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Pixels / Sec (PPS):</span>
+            <span id="ppsVal" class="font-pixel text-[10px] text-green-400">0.0</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Strike Power:</span>
+            <span id="powerVal" class="font-pixel text-[10px] text-cyan-400">1</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Crit Rate:</span>
+            <span id="critVal" class="font-pixel text-[10px] text-yellow-400">5%</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Multiplier:</span>
+            <span id="multVal" class="font-pixel text-[10px] text-purple-400">1.0x</span>
+          </div>
+        </div>
+
+        <!-- Active Buffs -->
+        <div class="space-y-1">
+          <div class="text-[9px] uppercase text-slate-400 font-pixel">Active Buffs</div>
+          <div id="buffsContainer" class="flex flex-wrap gap-1 min-h-[26px] text-[10px]">
+            <span class="text-slate-500 italic text-xs">No active buffs</span>
+          </div>
+        </div>
+
+        <!-- Event Log Box -->
+        <div class="flex-1 flex flex-col min-h-[130px]">
+          <div class="text-[9px] uppercase text-slate-400 font-pixel mb-1 flex justify-between">
+            <span>Adventure Log</span>
+            <span class="text-[8px] text-slate-500">LIVE</span>
+          </div>
+          <div id="eventLog" class="flex-1 pixel-inset-box p-2 font-mono text-xs overflow-y-auto max-h-[140px] space-y-1 text-slate-300">
+            <div class="text-slate-500">[System] Adventure initialized...</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= CENTER PANEL: CANVAS ENGINE & GADGETS ================= -->
+    <section class="lg:col-span-6 pixel-panel flex flex-col items-center justify-between min-h-[480px] relative overflow-hidden">
+      
+      <!-- Stage Header -->
+      <div class="pixel-panel-header w-full px-3 py-1.5 text-[10px] sm:text-[11px] text-center text-amber-300 flex justify-between items-center">
+        <span>🎬 2D EVOLUTIONARY SIDE-SCROLLER</span>
+        <span class="text-[9px] text-cyan-300">CLICK / SPACE TO MINE!</span>
+      </div>
+
+      <!-- Main Game Canvas Container -->
+      <div id="canvasWrapper" class="relative w-full flex-1 bg-slate-950 cursor-crosshair overflow-hidden border-b-4 border-black">
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+      </div>
+
+      <!-- ACTIVE GADGETS QUICKBAR (Hotkeys 1, 2, 3, 4) -->
+      <div class="w-full bg-slate-900 p-2 border-t-2 border-slate-800 flex flex-col space-y-2">
+        <div class="text-[9px] font-pixel text-slate-400 text-center uppercase tracking-wider">
+          ⚡ ACTIVE GADGET QUICKBAR (PRESS HOTKEYS 1 - 4)
+        </div>
+
+        <div class="grid grid-cols-4 gap-2">
+          
+          <!-- Gadget 1: Dynamite -->
+          <button id="gadgetBtn1" onclick="game.useGadget('dynamite')" class="pixel-btn pixel-btn-red py-2 relative flex flex-col items-center justify-center overflow-hidden">
+            <span class="text-base sm:text-lg">🧨</span>
+            <span class="text-[8px] mt-0.5 font-pixel">DYNAMITE [1]</span>
+            <div id="cd1" class="cooldown-overlay hidden">0s</div>
+          </button>
+
+          <!-- Gadget 2: Overclock Potion -->
+          <button id="gadgetBtn2" onclick="game.useGadget('overclock')" class="pixel-btn pixel-btn-amber py-2 relative flex flex-col items-center justify-center overflow-hidden">
+            <span class="text-base sm:text-lg">🧪</span>
+            <span class="text-[8px] mt-0.5 font-pixel">OVERCLOCK [2]</span>
+            <div id="cd2" class="cooldown-overlay hidden">0s</div>
+          </button>
+
+          <!-- Gadget 3: Pixel Magnet -->
+          <button id="gadgetBtn3" onclick="game.useGadget('magnet')" class="pixel-btn pixel-btn-purple py-2 relative flex flex-col items-center justify-center overflow-hidden">
+            <span class="text-base sm:text-lg">🧲</span>
+            <span class="text-[8px] mt-0.5 font-pixel">MAGNET [3]</span>
+            <div id="cd3" class="cooldown-overlay hidden">0s</div>
+          </button>
+
+          <!-- Gadget 4: Laser Drill -->
+          <button id="gadgetBtn4" onclick="game.useGadget('laser')" class="pixel-btn pixel-btn-blue py-2 relative flex flex-col items-center justify-center overflow-hidden">
+            <span class="text-base sm:text-lg">🔦</span>
+            <span class="text-[8px] mt-0.5 font-pixel">LASER [4]</span>
+            <div id="cd4" class="cooldown-overlay hidden">0s</div>
+          </button>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= RIGHT PANEL: UPGRADES SHOP ================= -->
+    <section class="lg:col-span-3 pixel-panel flex flex-col h-full min-h-[440px]">
+      
+      <!-- Panel Header -->
+      <div class="pixel-panel-header px-3 py-1.5 text-[11px] text-center text-green-400">
+        🛒 GEAR & PET SHOP
+      </div>
+
+      <!-- Shop Tab Buttons -->
+      <div class="flex border-b-4 border-black bg-slate-950 font-pixel text-[10px]">
+        <button id="tabToolsBtn" onclick="game.switchShopTab('tools')" class="flex-1 py-2 text-center text-amber-400 bg-slate-800 border-r-2 border-black">
+          Tools
+        </button>
+        <button id="tabGadgetsBtn" onclick="game.switchShopTab('gadgets')" class="flex-1 py-2 text-center text-slate-400 hover:text-slate-200 border-r-2 border-black">
+          Gadgets
+        </button>
+        <button id="tabBotsBtn" onclick="game.switchShopTab('bots')" class="flex-1 py-2 text-center text-slate-400 hover:text-slate-200">
+          Bots & Pets
+        </button>
+      </div>
+
+      <!-- Shop Items Container -->
+      <div id="upgradesContainer" class="p-2 flex-1 overflow-y-auto space-y-2 max-h-[480px]">
+        <!-- Dynamic JS Cards -->
+      </div>
+
+      <!-- Bottom Prestige Button -->
+      <div class="p-2 border-t-2 border-slate-800 bg-slate-900">
+        <button id="prestigeBtn" onclick="game.openPrestigeModal()" class="w-full pixel-btn pixel-btn-amber py-2 text-[10px]" disabled>
+          🔒 Prestige (100k Pixels)
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER BAR ================= -->
+  <footer class="bg-slate-900 border-t-4 border-black px-4 py-2 z-20">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2 text-xs">
+      <div class="flex items-center space-x-2">
+        <button onclick="game.saveGame(true)" class="pixel-btn pixel-btn-blue px-2.5 py-1 text-[10px]">
+          💾 Save Game
+        </button>
+        <button onclick="game.openResetModal()" class="pixel-btn pixel-btn-dark text-rose-400 px-2.5 py-1 text-[10px]">
+          Reset Data
+        </button>
+      </div>
+      <div class="text-slate-400 font-mono text-[11px]">
+        Pixel Miner: Evolutionary Adventure • Autosaves Every 10s
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= MODALS ================= -->
+  <!-- Help Modal -->
+  <div id="helpModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="pixel-panel max-w-md w-full p-5 space-y-3">
+      <div class="pixel-panel-header -mx-5 -mt-5 p-2 text-xs text-amber-400 text-center">
+        📖 ADVENTURE & EVOLUTION GUIDE
+      </div>
+      <div class="space-y-2 text-sm text-slate-300 font-sans leading-snug pt-2">
+        <p>• <strong>Miner Armor Evolution:</strong> Gain XP by mining ores and defeating Bosses. Unlock 4 Armor Tiers: Novice ➔ Iron ➔ Gold Knight ➔ Cosmic God!</p>
+        <p>• <strong>Cinematic Cutscenes:</strong> Trigger dramatic level transition cutscenes whenever you defeat Giant Boss Ores or descend into new Biomes.</p>
+        <p>• <strong>Active Gadgets Quickbar (Hotkeys 1-4):</strong></p>
+        <ul class="list-disc pl-5 text-xs text-slate-300 space-y-1">
+          <li><strong>Dynamite [1]:</strong> Throws fuse explosive causing screen shake AoE damage.</li>
+          <li><strong>Overclock [2]:</strong> Drink potion for fiery aura, 3x attack speed + 100% Crits.</li>
+          <li><strong>Magnet [3]:</strong> Magnetic forcefield drawing floating gem particles.</li>
+          <li><strong>Laser [4]:</strong> Fires continuous melting laser beam from pickaxe.</li>
+        </ul>
+        <p>• <strong>Pixel Bot Pet:</strong> Purchase Bot Drone in shop to have an automated pet hover beside you shooting laser bolts!</p>
+      </div>
+      <button onclick="game.closeHelpModal()" class="w-full pixel-btn pixel-btn-amber py-2 text-xs">
+        GOT IT!
+      </button>
+    </div>
+  </div>
+
+  <!-- Prestige Modal -->
+  <div id="prestigeModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="pixel-panel max-w-md w-full p-5 space-y-3 text-center">
+      <div class="pixel-panel-header -mx-5 -mt-5 p-2 text-xs text-purple-400">
+        💎 PRESTIGE REBIRTH
+      </div>
+      <p class="text-sm text-slate-300 pt-1">
+        Rebirth your miner! Reset pixels and upgrades in exchange for a permanent <strong>+0.5x Multiplier boost</strong>.
+      </p>
+      <div class="pixel-inset-box p-3 font-pixel text-xs text-amber-300 space-y-2">
+        <div>Current Multiplier: <span id="modalCurrentMult">1.0x</span></div>
+        <div>New Multiplier: <span id="modalNewMult" class="text-green-400">1.5x</span></div>
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button onclick="game.executePrestige()" class="flex-1 pixel-btn pixel-btn-amber py-2 text-xs">
+          PRESTIGE!
+        </button>
+        <button onclick="game.closePrestigeModal()" class="flex-1 pixel-btn pixel-btn-dark py-2 text-xs">
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Modal -->
+  <div id="resetModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="pixel-panel max-w-md w-full p-5 space-y-3 text-center border-rose-600">
+      <div class="pixel-panel-header -mx-5 -mt-5 p-2 text-xs text-rose-400">
+        ⚠️ RESET GAME DATA?
+      </div>
+      <p class="text-sm text-slate-300 pt-1">
+        Are you sure? All depth progress, pixels, upgrades, and armor evolution will be erased.
+      </p>
+      <div class="flex space-x-2 pt-2">
+        <button onclick="game.confirmHardReset()" class="flex-1 pixel-btn pixel-btn-red py-2 text-xs">
+          YES, RESET
+        </button>
+        <button onclick="game.closeResetModal()" class="flex-1 pixel-btn pixel-btn-dark py-2 text-xs">
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-14 right-4 pixel-panel bg-emerald-900 border-emerald-500 text-emerald-200 px-3 py-1.5 font-pixel text-xs hidden z-50 shadow-xl">
+    💾 Game Saved!
+  </div>
+
+  <script>
+    /* Procedural Web Audio SFX Engine */
+    class RetroAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      }
+
+      playTone(freq, type, duration, startVol = 0.1, endFreq = null) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          if (endFreq) {
+            osc.frequency.exponentialRampToValueAtTime(endFreq, this.ctx.currentTime + duration);
+          }
+
+          gain.gain.setValueAtTime(startVol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      playHit() { this.playTone(260, 'square', 0.05, 0.08, 110); }
+      playCrit() {
+        [440, 660, 980].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'square', 0.08, 0.12), i * 35);
+        });
+      }
+      playExplosion() {
+        this.playTone(160, 'sawtooth', 0.45, 0.25, 25);
+        this.playTone(90, 'square', 0.5, 0.3, 20);
+      }
+      playLaser() { this.playTone(920, 'sawtooth', 0.12, 0.1, 200); }
+      playPotion() {
+        [320, 480, 640, 800].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'sine', 0.06, 0.08), i * 40);
+        });
+      }
+      playBuy() {
+        this.playTone(523, 'triangle', 0.06, 0.1);
+        setTimeout(() => this.playTone(659, 'triangle', 0.08, 0.1), 50);
+      }
+      playMonsterHit() { this.playTone(190, 'sawtooth', 0.08, 0.12, 50); }
+      playChest() {
+        [500, 700, 900, 1200].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'sine', 0.08, 0.1), i * 50);
+        });
+      }
+      playCutsceneFanfare() {
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.18), i * 110);
+        });
+      }
+    }
+
+    /* 2D Canvas Engine with Character Evolution & Cutscenes */
+    class SideScrollingCanvasEngine {
+      constructor(game) {
+        this.game = game;
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.miner = {
+          x: 90,
+          y: 0,
+          width: 36,
+          height: 36,
+          frame: 0,
+          animTimer: 0,
+          state: 'mining' // 'walking', 'mining', 'celebrating'
+        };
+
+        this.currentBlock = null;
+        this.currentMonster = null;
+        this.currentEncounter = null;
+
+        this.particles = [];
+        this.floatingTexts = [];
+        this.lootDrops = [];
+        this.dynamiteProjectiles = [];
+        this.bgOffset = 0;
+
+        this.screenShake = 0;
+        this.laserActive = false;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        // Mouse/Touch Canvas Interactions
+        this.canvas.addEventListener('mousedown', (e) => this.handleCanvasClick(e));
+        this.canvas.addEventListener('touchstart', (e) => {
+          if (e.touches.length > 0) this.handleCanvasClick(e.touches[0]);
+        });
+      }
+
+      resize() {
+        const wrapper = document.getElementById('canvasWrapper');
+        if (!wrapper) return;
+        this.canvas.width = wrapper.clientWidth;
+        this.canvas.height = wrapper.clientHeight;
+        this.miner.y = this.canvas.height - 72;
+      }
+
+      spawnNextBlock() {
+        const depth = this.game.state.depth;
+        const lvl = this.game.state.level;
+
+        // Check for Level End Boss Ore
+        if (depth > lvl * 100 && !this.game.state.inCutscene) {
+          this.spawnBossOre();
+          return;
+        }
+
+        let type = 'Dirt';
+        let color = '#854d0e';
+        let hp = 12 + depth * 3;
+
+        if (depth >= 1000) { type = 'Cosmic Abyss Ore'; color = '#c084fc'; hp = 60000 + depth * 200; }
+        else if (depth >= 500) { type = 'Magma Core Stone'; color = '#f97316'; hp = 15000 + depth * 70; }
+        else if (depth >= 200) { type = 'Crystal Cavern Ore'; color = '#38bdf8'; hp = 3500 + depth * 35; }
+        else if (depth >= 50) { type = 'Iron Ore'; color = '#94a3b8'; hp = 200 + depth * 10; }
+
+        this.currentBlock = {
+          x: this.canvas.width,
+          targetX: 180,
+          width: 48,
+          height: 48,
+          type: type,
+          color: color,
+          hp: hp,
+          maxHp: hp,
+          reward: Math.floor(hp * 0.9),
+          isBoss: false
+        };
+      }
+
+      spawnBossOre() {
+        const lvl = this.game.state.level;
+        const hp = 800 * Math.pow(1.8, lvl);
+
+        this.currentBlock = {
+          x: this.canvas.width,
+          targetX: 180,
+          width: 64,
+          height: 64,
+          type: `👑 LEVEL ${lvl} BOSS ORE`,
+          color: '#eab308',
+          hp: hp,
+          maxHp: hp,
+          reward: hp * 2,
+          isBoss: true
+        };
+        this.game.addLog(`⚠️ GIANT BOSS ORE ENCOUNTERED!`);
+      }
+
+      spawnRandomEncounter() {
+        const rand = Math.random();
+        if (rand < 0.45) {
+          const depth = this.game.state.depth;
+          const hp = 120 + depth * 15;
+          this.currentMonster = {
+            x: this.canvas.width,
+            targetX: 180,
+            type: depth > 300 ? 'Magma Golem' : 'Cave Goblin',
+            hp: hp,
+            maxHp: hp,
+            reward: hp * 2.5,
+            color: depth > 300 ? '#ef4444' : '#22c55e'
+          };
+          this.game.addLog(`👾 Wild ${this.currentMonster.type} appeared!`);
+        } else if (rand < 0.75) {
+          const isShrine = Math.random() < 0.4;
+          this.currentEncounter = {
+            x: this.canvas.width,
+            targetX: 180,
+            type: isShrine ? 'Ancient Shrine' : 'Treasure Cart',
+            color: isShrine ? '#38bdf8' : '#f59e0b'
+          };
+          this.game.addLog(`✨ Found a ${this.currentEncounter.type}!`);
+        }
+      }
+
+      handleCanvasClick(e) {
+        if (this.game.state.inCutscene) {
+          this.game.skipCutscene();
+          return;
+        }
+
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        if (this.currentEncounter && this.currentEncounter.x <= 220) {
+          this.claimEncounter();
+          return;
+        }
+
+        this.game.mineStrike(clickX, clickY);
+      }
+
+      claimEncounter() {
+        if (!this.currentEncounter) return;
+        const enc = this.currentEncounter;
+        this.currentEncounter = null;
+
+        if (enc.type === 'Treasure Cart') {
+          const reward = Math.floor(this.game.getPPS() * 35 + this.game.getMinePower() * 30 + 200);
+          this.game.addPixels(reward);
+          this.game.sound.playChest();
+          this.spawnFloatingText(200, this.miner.y - 20, `+${reward} JACKPOT!`, '#f59e0b');
+          this.game.addLog(`🎁 Claimed Treasure Cart: +${reward} Pixels!`);
+        } else {
+          this.game.activateBuff('shrine', 15);
+          this.game.sound.playPotion();
+          this.spawnFloatingText(200, this.miner.y - 20, `SHRINE BUFF! 2x MULT`, '#38bdf8');
+          this.game.addLog(`🏛️ Activated Ancient Shrine: 2x Multiplier for 15s!`);
+        }
+      }
+
+      updateAndDraw(dt) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.save();
+        if (this.screenShake > 0) {
+          const shakeX = (Math.random() - 0.5) * this.screenShake;
+          const shakeY = (Math.random() - 0.5) * this.screenShake;
+          this.ctx.translate(shakeX, shakeY);
+          this.screenShake = Math.max(0, this.screenShake - dt * 25);
+        }
+
+        // 1. Draw Biome Background
+        this.drawBackground();
+
+        if (!this.game.state.inCutscene) {
+          // 2. Side-Scrolling Movement
+          const speed = 60 * (this.game.state.activeBuffs.overclock ? 2.5 : 1.0);
+
+          if (!this.currentBlock && !this.currentMonster && !this.currentEncounter) {
+            this.bgOffset += speed * dt;
+            this.game.state.depth += (speed * dt * 0.05);
+
+            if (Math.random() < 0.2) {
+              this.spawnRandomEncounter();
+            } else {
+              this.spawnNextBlock();
+            }
+            this.miner.state = 'walking';
+          } else {
+            this.miner.state = 'mining';
+          }
+        } else {
+          this.miner.state = 'celebrating';
+        }
+
+        // 3. Draw Encounter / Monster / Block
+        if (this.currentBlock) {
+          if (this.currentBlock.x > this.currentBlock.targetX) {
+            this.currentBlock.x -= 120 * dt;
+          } else {
+            this.currentBlock.x = this.currentBlock.targetX;
+          }
+          this.drawBlock(this.currentBlock);
+        }
+
+        if (this.currentMonster) {
+          if (this.currentMonster.x > this.currentMonster.targetX) {
+            this.currentMonster.x -= 120 * dt;
+          } else {
+            this.currentMonster.x = this.currentMonster.targetX;
+          }
+          this.drawMonster(this.currentMonster);
+        }
+
+        if (this.currentEncounter) {
+          if (this.currentEncounter.x > this.currentEncounter.targetX) {
+            this.currentEncounter.x -= 120 * dt;
+          } else {
+            this.currentEncounter.x = this.currentEncounter.targetX;
+          }
+          this.drawEncounterObj(this.currentEncounter);
+        }
+
+        // 4. Draw Evolving Miner Character
+        this.drawEvolvingMiner(dt);
+
+        // 5. Draw Pixel Bot Drone Pet (If Unlocked)
+        if (this.game.state.upgrades.bot_drone.level > 0) {
+          this.drawDronePet(dt);
+        }
+
+        // 6. Draw Active Gadget Visual Effects
+        if (this.laserActive) this.drawLaserBeam();
+        this.updateDynamiteProjectiles(dt);
+
+        // 7. Particles & Loot
+        this.updateParticles(dt);
+        this.updateFloatingTexts(dt);
+        this.updateLootDrops(dt);
+
+        this.ctx.restore();
+
+        // 8. Draw Cutscene Overlay IF active
+        if (this.game.state.inCutscene) {
+          this.drawCutsceneOverlay(dt);
+        }
+      }
+
+      drawBackground() {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const depth = this.game.state.depth;
+
+        let bgGrad1 = '#0f172a', bgGrad2 = '#1e293b', rockColor = '#334155';
+
+        if (depth >= 1000) { // Cosmic Abyss
+          bgGrad1 = '#2e1065'; bgGrad2 = '#581c87'; rockColor = '#a855f7';
+        } else if (depth >= 500) { // Magma Core
+          bgGrad1 = '#450a0a'; bgGrad2 = '#7f1d1d'; rockColor = '#ef4444';
+        } else if (depth >= 200) { // Crystal Cavern
+          bgGrad1 = '#082f49'; bgGrad2 = '#0c4a6e'; rockColor = '#0284c7';
+        }
+
+        this.ctx.fillStyle = bgGrad1;
+        this.ctx.fillRect(0, 0, w, h);
+
+        // Moving Wall Details
+        this.ctx.fillStyle = bgGrad2;
+        for (let i = -30; i < w + 30; i += 40) {
+          const x = (i - (this.bgOffset % 40));
+          this.ctx.fillRect(x, 20, 16, 16);
+          this.ctx.fillRect(x + 20, h - 100, 12, 12);
+        }
+
+        // Ground Bedrock Line
+        this.ctx.fillStyle = rockColor;
+        this.ctx.fillRect(0, h - 38, w, 6);
+        this.ctx.fillStyle = bgGrad1;
+        this.ctx.fillRect(0, h - 32, w, 32);
+      }
+
+      drawEvolvingMiner(dt) {
+        this.miner.animTimer += dt * 10;
+        const frame = Math.floor(this.miner.animTimer) % 4;
+        const x = this.miner.x;
+        const y = this.miner.y;
+        const tier = this.game.getArmorTier();
+
+        // Aura Effects for Tier 4 (Cosmic God) or Overclock
+        if (tier === 4 || this.game.state.activeBuffs.overclock) {
+          const glowColor = tier === 4 ? 'rgba(168, 85, 247, 0.35)' : 'rgba(251, 191, 36, 0.35)';
+          this.ctx.fillStyle = glowColor;
+          this.ctx.beginPath();
+          this.ctx.arc(x + 18, y + 18, 30, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+
+        // --- BODY ARMOR COLOR SCHEME BY TIER ---
+        let tunicColor = '#78350f'; // Leather (Tier 1)
+        let helmetColor = '#f59e0b'; // Leather Hat
+        let pickColor = '#92400e'; // Wooden Pick
+
+        if (tier === 2) { // Iron
+          tunicColor = '#64748b'; helmetColor = '#94a3b8'; pickColor = '#cbd5e1';
+        } else if (tier === 3) { // Gold Knight
+          tunicColor = '#eab308'; helmetColor = '#fef08a'; pickColor = '#facc15';
+        } else if (tier === 4) { // Diamond Cosmic God
+          tunicColor = '#38bdf8'; helmetColor = '#c084fc'; pickColor = '#a855f7';
+        }
+
+        // Flowing Red Cape for Tier 3 & 4
+        if (tier >= 3) {
+          this.ctx.fillStyle = '#ef4444';
+          const capeSway = Math.sin(this.miner.animTimer) * 4;
+          this.ctx.fillRect(x - 4, y + 10, 10 + capeSway, 22);
+        }
+
+        // Armor Body
+        this.ctx.fillStyle = tunicColor;
+        this.ctx.fillRect(x + 8, y + 12, 18, 14);
+
+        // Helmet / Visor
+        this.ctx.fillStyle = helmetColor;
+        this.ctx.fillRect(x + 6, y, 22, 10);
+        if (tier >= 2) {
+          this.ctx.fillStyle = '#38bdf8'; // Glowing visor
+          this.ctx.fillRect(x + 20, y + 3, 6, 4);
+        } else {
+          this.ctx.fillStyle = '#fed7aa'; // Face
+          this.ctx.fillRect(x + 12, y + 8, 12, 5);
+        }
+
+        // Animated Legs
+        this.ctx.fillStyle = '#0f172a';
+        if (this.miner.state === 'walking' && frame % 2 === 0) {
+          this.ctx.fillRect(x + 8, y + 26, 6, 8);
+          this.ctx.fillRect(x + 18, y + 24, 6, 8);
+        } else {
+          this.ctx.fillRect(x + 6, y + 24, 6, 8);
+          this.ctx.fillRect(x + 20, y + 26, 6, 8);
+        }
+
+        // Animated Pickaxe Swing or Celebrating Jump
+        this.ctx.save();
+        this.ctx.translate(x + 20, y + 14);
+        let angle = 0;
+        if (this.miner.state === 'mining') {
+          angle = Math.sin(this.miner.animTimer * 1.5) * 0.8;
+        } else if (this.miner.state === 'celebrating') {
+          angle = -1.2 + Math.sin(this.miner.animTimer * 3) * 0.3;
+        }
+        this.ctx.rotate(angle);
+
+        // Pickaxe Handle & Blade
+        this.ctx.fillStyle = '#78350f';
+        this.ctx.fillRect(0, -2, 20, 4);
+        this.ctx.fillStyle = pickColor;
+        this.ctx.fillRect(16, -12, 6, 24);
+        this.ctx.restore();
+      }
+
+      drawDronePet(dt) {
+        const droneX = this.miner.x - 20;
+        const droneY = this.miner.y - 15 + Math.sin(this.miner.animTimer) * 5;
+
+        // Hovering Drone Body
+        this.ctx.fillStyle = '#38bdf8';
+        this.ctx.fillRect(droneX, droneY, 16, 12);
+        this.ctx.fillStyle = '#fef08a'; // Sensor eye
+        this.ctx.fillRect(droneX + 10, droneY + 4, 4, 4);
+
+        // Auto Shooting Laser at Block
+        if (this.currentBlock && Math.floor(this.miner.animTimer) % 6 === 0) {
+          this.ctx.strokeStyle = '#38bdf8';
+          this.ctx.lineWidth = 2;
+          this.ctx.beginPath();
+          this.ctx.moveTo(droneX + 12, droneY + 6);
+          this.ctx.lineTo(this.currentBlock.x + 10, this.miner.y + 10);
+          this.ctx.stroke();
+        }
+      }
+
+      drawBlock(block) {
+        const x = block.x;
+        const y = this.miner.y - (block.isBoss ? 28 : 12);
+
+        this.ctx.fillStyle = block.color;
+        this.ctx.fillRect(x, y, block.width, block.height);
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(x, y, block.width, block.height);
+
+        // HP Bar
+        this.drawHpBar(x, y - 16, block.width, block.hp, block.maxHp, block.type);
+      }
+
+      drawMonster(monster) {
+        const x = monster.x;
+        const y = this.miner.y - 12;
+
+        this.ctx.fillStyle = monster.color;
+        this.ctx.fillRect(x, y, 40, 40);
+        this.ctx.fillStyle = '#fef08a';
+        this.ctx.fillRect(x + 8, y + 10, 8, 6);
+        this.ctx.fillRect(x + 24, y + 10, 8, 6);
+
+        this.drawHpBar(x - 5, y - 16, 50, monster.hp, monster.maxHp, monster.type);
+      }
+
+      drawEncounterObj(enc) {
+        const x = enc.x;
+        const y = this.miner.y;
+
+        this.ctx.fillStyle = enc.color;
+        this.ctx.fillRect(x, y, 36, 32);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.font = '10px "Press Start 2P"';
+        this.ctx.fillText(enc.type === 'Treasure Cart' ? '🎁' : '🏛️', x + 8, y + 20);
+      }
+
+      drawHpBar(x, y, width, hp, maxHp, label) {
+        this.ctx.fillStyle = '#0f172a';
+        this.ctx.fillRect(x, y, width, 8);
+        const pct = Math.max(0, hp / maxHp);
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.fillRect(x, y, width * pct, 8);
+        this.ctx.strokeStyle = '#000';
+        this.ctx.strokeRect(x, y, width, 8);
+      }
+
+      drawLaserBeam() {
+        const y = this.miner.y + 14;
+        this.ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+        this.ctx.fillRect(this.miner.x + 24, y - 8, this.canvas.width, 16);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(this.miner.x + 24, y - 2, this.canvas.width, 4);
+      }
+
+      spawnDynamite(targetX, targetY) {
+        this.dynamiteProjectiles.push({
+          x: this.miner.x + 20,
+          y: this.miner.y,
+          targetX: targetX,
+          targetY: targetY,
+          timer: 1.2
+        });
+      }
+
+      updateDynamiteProjectiles(dt) {
+        for (let i = this.dynamiteProjectiles.length - 1; i >= 0; i--) {
+          const d = this.dynamiteProjectiles[i];
+          d.timer -= dt;
+
+          d.x += (d.targetX - d.x) * dt * 5;
+          d.y += (d.targetY - d.y) * dt * 5;
+
+          // Render Stick Dynamite
+          this.ctx.fillStyle = '#ef4444';
+          this.ctx.fillRect(d.x, d.y, 14, 6);
+          this.ctx.fillStyle = '#fef08a'; // Fuse spark
+          this.ctx.fillRect(d.x + 12, d.y - 2, 4, 4);
+
+          if (d.timer <= 0) {
+            // Explode!
+            this.game.sound.playExplosion();
+            this.screenShake = 20;
+            const dmg = this.game.getMinePower() * (40 + this.game.state.upgrades.dynamite_spec.level * 25);
+
+            this.spawnParticles(d.x, d.y, '#f97316', 35);
+            this.spawnParticles(d.x, d.y, '#ef4444', 25);
+            this.spawnFloatingText(d.x, d.y - 20, `BOOM! -${dmg}`, '#f97316');
+
+            if (this.currentBlock) {
+              this.currentBlock.hp -= dmg;
+              if (this.currentBlock.hp <= 0) this.currentBlock = null;
+            }
+            if (this.currentMonster) {
+              this.currentMonster.hp -= dmg;
+              if (this.currentMonster.hp <= 0) this.currentMonster = null;
+            }
+
+            this.dynamiteProjectiles.splice(i, 1);
+          }
+        }
+      }
+
+      drawCutsceneOverlay(dt) {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        // Cinematic Letterbox Black Bars (Top & Bottom)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, w, 45);
+        this.ctx.fillRect(0, h - 55, w, 55);
+
+        // Cutscene Banner Title
+        this.ctx.fillStyle = '#f59e0b';
+        this.ctx.font = '12px "Press Start 2P"';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(this.game.state.cutsceneData.title, w / 2, 28);
+
+        // Typewriter Text Dialogue in Bottom Bar
+        this.ctx.fillStyle = '#38bdf8';
+        this.ctx.font = '10px "Press Start 2P"';
+        this.ctx.fillText(this.game.state.cutsceneData.typedText, w / 2, h - 25);
+
+        this.ctx.fillStyle = '#94a3b8';
+        this.ctx.font = '8px "Press Start 2P"';
+        this.ctx.fillText("CLICK / PRESS ANYKEY TO CONTINUE ▶", w / 2, h - 10);
+
+        this.ctx.textAlign = 'left';
+      }
+
+      spawnParticles(x, y, color, count = 12) {
+        for (let i = 0; i < count; i++) {
+          this.particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6 - 2,
+            size: Math.random() * 4 + 3,
+            color: color,
+            alpha: 1
+          });
+        }
+      }
+
+      spawnFloatingText(x, y, text, color) {
+        this.floatingTexts.push({
+          x: x, y: y, text: text, color: color, alpha: 1, vy: -1.5
+        });
+      }
+
+      spawnLoot(x, y, amount) {
+        this.lootDrops.push({
+          x: x, y: y,
+          vx: (Math.random() - 0.5) * 4,
+          vy: -3,
+          amount: amount
+        });
+      }
+
+      updateParticles(dt) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.15;
+          p.alpha -= dt * 2;
+
+          if (p.alpha <= 0) {
+            this.particles.splice(i, 1);
+            continue;
+          }
+
+          this.ctx.fillStyle = p.color;
+          this.ctx.globalAlpha = p.alpha;
+          this.ctx.fillRect(p.x, p.y, p.size, p.size);
+        }
+        this.ctx.globalAlpha = 1;
+      }
+
+      updateFloatingTexts(dt) {
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+          const t = this.floatingTexts[i];
+          t.y += t.vy;
+          t.alpha -= dt * 1.2;
+
+          if (t.alpha <= 0) {
+            this.floatingTexts.splice(i, 1);
+            continue;
+          }
+
+          this.ctx.fillStyle = t.color;
+          this.ctx.globalAlpha = t.alpha;
+          this.ctx.font = '11px "Press Start 2P"';
+          this.ctx.fillText(t.text, t.x, t.y);
+        }
+        this.ctx.globalAlpha = 1;
+      }
+
+      updateLootDrops(dt) {
+        const isMagnet = this.game.state.activeBuffs.magnet > 0;
+
+        for (let i = this.lootDrops.length - 1; i >= 0; i--) {
+          const l = this.lootDrops[i];
+
+          if (isMagnet) {
+            const dx = (this.miner.x + 16) - l.x;
+            const dy = (this.miner.y + 16) - l.y;
+            l.x += dx * dt * 8;
+            l.y += dy * dt * 8;
+
+            if (Math.abs(dx) < 15 && Math.abs(dy) < 15) {
+              this.game.addPixels(l.amount);
+              this.lootDrops.splice(i, 1);
+              continue;
+            }
+          } else {
+            l.x += l.vx;
+            l.y += l.vy;
+            l.vy += 0.2;
+            if (l.y > this.miner.y + 24) l.y = this.miner.y + 24;
+          }
+
+          this.ctx.fillStyle = '#f59e0b';
+          this.ctx.fillRect(l.x, l.y, 6, 6);
+        }
+      }
+    }
+
+    /* Main Game State Controller */
+    class PixelMinerGame {
+      constructor() {
+        this.sound = new RetroAudioEngine();
+        this.state = {
+          pixels: 0,
+          depth: 0,
+          level: 1,
+          xp: 0,
+          multiplier: 1.0,
+          prestigeCount: 0,
+          activeShopTab: 'tools',
+          
+          inCutscene: false,
+          cutsceneData: {
+            title: '',
+            fullText: '',
+            typedText: '',
+            charIndex: 0
+          },
+
+          // Active Buff Timers
+          activeBuffs: {
+            overclock: 0,
+            magnet: 0,
+            shrine: 0
+          },
+
+          // Gadget Cooldown Timers
+          cooldowns: {
+            dynamite: 0,
+            overclock: 0,
+            magnet: 0,
+            laser: 0
+          },
+
+          // Upgrades Definition
+          upgrades: {
+            pickaxe_power: { id: 'pickaxe_power', name: 'Pickaxe Power', tab: 'tools', level: 0, baseCost: 15, costMult: 1.5, power: 3, desc: '+3 strike power', icon: '⛏️' },
+            sharp_blade: { id: 'sharp_blade', name: 'Diamond Edge', tab: 'tools', level: 0, baseCost: 80, costMult: 1.7, power: 10, desc: '+10 strike power', icon: '💎' },
+            lucky_charm: { id: 'lucky_charm', name: 'Crit Ring', tab: 'tools', level: 0, baseCost: 150, costMult: 2.0, crit: 0.05, desc: '+5% crit rate', icon: '💍' },
+
+            dynamite_spec: { id: 'dynamite_spec', name: 'Big Dynamite', tab: 'gadgets', level: 0, baseCost: 120, costMult: 1.8, desc: '+50% explosion damage', icon: '🧨' },
+            potion_boost: { id: 'potion_boost', name: 'Hyper Speed', tab: 'gadgets', level: 0, baseCost: 300, costMult: 2.0, desc: '+3s overclock duration', icon: '🧪' },
+
+            bot_drone: { id: 'bot_drone', name: 'Pixel Bot Drone', tab: 'bots', level: 0, baseCost: 100, costMult: 1.5, pps: 5, desc: '+5 PPS & Auto Laser Pet', icon: '🤖' },
+            mole_machine: { id: 'mole_machine', name: 'Mole Drill', tab: 'bots', level: 0, baseCost: 400, costMult: 1.6, pps: 25, desc: '+25 PPS', icon: '🚜' },
+            plasma_cutter: { id: 'plasma_cutter', name: 'Plasma Cutter', tab: 'bots', level: 0, baseCost: 1500, costMult: 1.7, pps: 100, desc: '+100 PPS', icon: '🛰️' }
+          }
+        };
+
+        this.engine = null;
+      }
+
+      init() {
+        this.loadGame();
+        this.engine = new SideScrollingCanvasEngine(this);
+
+        this.renderUpgradesList();
+        this.updateUI();
+
+        // 60FPS Game Render Loop
+        let lastTime = performance.now();
+        const gameLoop = (now) => {
+          const dt = Math.min(0.1, (now - lastTime) / 1000);
+          lastTime = now;
+
+          this.updateTimers(dt);
+          this.updateTypewriter(dt);
+          this.engine.updateAndDraw(dt);
+
+          requestAnimationFrame(gameLoop);
+        };
+        requestAnimationFrame(gameLoop);
+
+        // 10 Ticks/sec Logic
+        setInterval(() => this.logicTick(0.1), 100);
+
+        // Autosave every 10s
+        setInterval(() => this.saveGame(false), 10000);
+
+        // Hotkeys (1-4, Space)
+        window.addEventListener('keydown', (e) => {
+          if (e.key === '1') this.useGadget('dynamite');
+          if (e.key === '2') this.useGadget('overclock');
+          if (e.key === '3') this.useGadget('magnet');
+          if (e.key === '4') this.useGadget('laser');
+          if (e.code === 'Space') {
+            e.preventDefault();
+            this.mineStrike(180, this.engine.miner.y);
+          }
+        });
+      }
+
+      getArmorTier() {
+        if (this.state.level >= 13) return 4; // Cosmic God
+        if (this.state.level >= 8) return 3;  // Gold Knight
+        if (this.state.level >= 4) return 2;  // Iron Miner
+        return 1;                             // Novice Leather
+      }
+
+      getArmorName() {
+        const t = this.getArmorTier();
+        if (t === 4) return `Lv ${this.state.level}: Cosmic Diamond God`;
+        if (t === 3) return `Lv ${this.state.level}: Golden Knight`;
+        if (t === 2) return `Lv ${this.state.level}: Iron Miner`;
+        return `Lv ${this.state.level}: Novice Leather`;
+      }
+
+      getMinePower() {
+        let p = 1;
+        p += this.state.upgrades.pickaxe_power.level * this.state.upgrades.pickaxe_power.power;
+        p += this.state.upgrades.sharp_blade.level * this.state.upgrades.sharp_blade.power;
+        let mult = this.state.multiplier;
+        if (this.state.activeBuffs.shrine > 0) mult *= 2.0;
+        return Math.floor(p * mult);
+      }
+
+      getCritChance() {
+        if (this.state.activeBuffs.overclock > 0) return 1.0; // 100% Crits
+        let c = 0.05 + (this.state.upgrades.lucky_charm.level * this.state.upgrades.lucky_charm.crit);
+        return Math.min(0.85, c);
+      }
+
+      getPPS() {
+        let pps = 0;
+        pps += this.state.upgrades.bot_drone.level * this.state.upgrades.bot_drone.pps;
+        pps += this.state.upgrades.mole_machine.level * this.state.upgrades.mole_machine.pps;
+        pps += this.state.upgrades.plasma_cutter.level * this.state.upgrades.plasma_cutter.pps;
+        let mult = this.state.multiplier;
+        if (this.state.activeBuffs.shrine > 0) mult *= 2.0;
+        return pps * mult;
+      }
+
+      addXP(amount) {
+        this.state.xp += amount;
+        const xpNeeded = this.state.level * 100;
+        if (this.state.xp >= xpNeeded) {
+          this.state.xp -= xpNeeded;
+          this.state.level += 1;
+          this.triggerLevelCutscene();
+        }
+      }
+
+      triggerLevelCutscene() {
+        this.state.inCutscene = true;
+        this.sound.playCutsceneFanfare();
+
+        const tierName = this.getArmorName();
+        this.state.cutsceneData = {
+          title: `🏆 LEVEL ${this.state.level} UNLOCKED!`,
+          fullText: `Armor Evolved: [${tierName}]! Descending into deeper caves...`,
+          typedText: '',
+          charIndex: 0
+        };
+        this.addLog(`🌟 LEVEL UP! You reached ${tierName}`);
+      }
+
+      skipCutscene() {
+        this.state.inCutscene = false;
+      }
+
+      updateTypewriter(dt) {
+        if (!this.state.inCutscene) return;
+        const d = this.state.cutsceneData;
+        if (d.charIndex < d.fullText.length) {
+          d.charIndex += dt * 30;
+          d.typedText = d.fullText.substring(0, Math.floor(d.charIndex));
+        }
+      }
+
+      mineStrike(clickX, clickY) {
+        if (this.state.inCutscene) return;
+
+        const isCrit = Math.random() < this.getCritChance();
+        const base = this.getMinePower();
+        const dmg = isCrit ? base * 3 : base;
+
+        if (this.engine.currentBlock) {
+          const b = this.engine.currentBlock;
+          b.hp -= dmg;
+          this.engine.screenShake = 4;
+
+          if (isCrit) {
+            this.sound.playCrit();
+            this.engine.spawnParticles(clickX, clickY, '#facc15', 16);
+            this.engine.spawnFloatingText(clickX, clickY - 10, `CRIT +${dmg}!`, '#facc15');
+          } else {
+            this.sound.playHit();
+            this.engine.spawnParticles(clickX, clickY, b.color, 8);
+            this.engine.spawnFloatingText(clickX, clickY - 10, `+${dmg}`, '#38bdf8');
+          }
+
+          if (b.hp <= 0) {
+            const reward = Math.floor(b.reward * this.state.multiplier);
+            this.addPixels(reward);
+            this.addXP(b.isBoss ? 200 : 25);
+            this.engine.spawnLoot(b.x, this.engine.miner.y, reward);
+            this.engine.currentBlock = null;
+          }
+        } else if (this.engine.currentMonster) {
+          const m = this.engine.currentMonster;
+          m.hp -= dmg;
+          this.sound.playMonsterHit();
+          this.engine.spawnParticles(clickX, clickY, '#ef4444', 12);
+          this.engine.spawnFloatingText(clickX, clickY - 10, `-${dmg}`, '#ef4444');
+
+          if (m.hp <= 0) {
+            const reward = Math.floor(m.reward * this.state.multiplier);
+            this.addPixels(reward);
+            this.addXP(40);
+            this.addLog(`⚔️ Defeated ${m.type}! +${reward} Pixels`);
+            this.engine.currentMonster = null;
+          }
+        }
+      }
+
+      useGadget(type) {
+        if (this.state.cooldowns[type] > 0 || this.state.inCutscene) return;
+
+        if (type === 'dynamite') {
+          this.state.cooldowns.dynamite = 12;
+          this.engine.spawnDynamite(180, this.engine.miner.y + 10);
+        } else if (type === 'overclock') {
+          const dur = 10 + (this.state.upgrades.potion_boost.level * 3);
+          this.state.cooldowns.overclock = 20;
+          this.activateBuff('overclock', dur);
+          this.sound.playPotion();
+          this.engine.spawnFloatingText(100, this.engine.miner.y - 20, 'OVERCLOCK 3X SPEED & 100% CRITS!', '#fbbf24');
+        } else if (type === 'magnet') {
+          this.state.cooldowns.magnet = 25;
+          this.activateBuff('magnet', 15);
+          this.sound.playPotion();
+          this.engine.spawnFloatingText(100, this.engine.miner.y - 20, 'MAGNETIC FORCEFIELD!', '#c084fc');
+        } else if (type === 'laser') {
+          this.state.cooldowns.laser = 30;
+          this.sound.playLaser();
+          this.engine.laserActive = true;
+          this.engine.screenShake = 8;
+
+          setTimeout(() => { this.engine.laserActive = false; }, 4000);
+
+          const interval = setInterval(() => {
+            if (!this.engine.laserActive) { clearInterval(interval); return; }
+            const dmg = Math.floor(this.getMinePower() * 2.5);
+            if (this.engine.currentBlock) {
+              this.engine.currentBlock.hp -= dmg;
+              if (this.engine.currentBlock.hp <= 0) this.engine.currentBlock = null;
+            }
+            if (this.engine.currentMonster) {
+              this.engine.currentMonster.hp -= dmg;
+              if (this.engine.currentMonster.hp <= 0) this.engine.currentMonster = null;
+            }
+          }, 200);
+        }
+
+        this.updateUI();
+      }
+
+      activateBuff(type, duration) {
+        this.state.activeBuffs[type] = duration;
+      }
+
+      updateTimers(dt) {
+        Object.keys(this.state.cooldowns).forEach(k => {
+          if (this.state.cooldowns[k] > 0) {
+            this.state.cooldowns[k] = Math.max(0, this.state.cooldowns[k] - dt);
+          }
+        });
+
+        Object.keys(this.state.activeBuffs).forEach(k => {
+          if (this.state.activeBuffs[k] > 0) {
+            this.state.activeBuffs[k] = Math.max(0, this.state.activeBuffs[k] - dt);
+          }
+        });
+      }
+
+      logicTick(dt) {
+        const pps = this.getPPS();
+        if (pps > 0) {
+          this.addPixels(pps * dt);
+        }
+        this.updateUI();
+      }
+
+      addPixels(amount) {
+        this.state.pixels += amount;
+      }
+
+      getUpgradeCost(upg) {
+        return Math.floor(upg.baseCost * Math.pow(upg.costMult, upg.level));
+      }
+
+      buyUpgrade(id) {
+        const upg = this.state.upgrades[id];
+        if (!upg) return;
+
+        const cost = this.getUpgradeCost(upg);
+        if (this.state.pixels >= cost) {
+          this.state.pixels -= cost;
+          upg.level += 1;
+          this.sound.playBuy();
+          this.addLog(`Purchased ${upg.name}`);
+          this.renderUpgradesList();
+          this.updateUI();
+        }
+      }
+
+      switchShopTab(tab) {
+        this.state.activeShopTab = tab;
+        ['tools', 'gadgets', 'bots'].forEach(t => {
+          const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+          if (t === tab) {
+            btn.className = "flex-1 py-2 text-center text-amber-400 bg-slate-800 border-r-2 border-black";
+          } else {
+            btn.className = "flex-1 py-2 text-center text-slate-400 hover:text-slate-200 border-r-2 border-black";
+          }
+        });
+        this.renderUpgradesList();
+      }
+
+      renderUpgradesList() {
+        const container = document.getElementById('upgradesContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        Object.values(this.state.upgrades)
+          .filter(u => u.tab === this.state.activeShopTab)
+          .forEach(upg => {
+            const cost = this.getUpgradeCost(upg);
+            const canAfford = this.state.pixels >= cost;
+
+            const card = document.createElement('div');
+            card.className = "pixel-inset-box p-2 flex items-center justify-between gap-2";
+            card.innerHTML = `
+              <div class="flex items-center space-x-2 min-w-0 flex-1">
+                <div class="text-xl bg-slate-900 p-1 border border-slate-700 rounded flex-shrink-0">
+                  ${upg.icon}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex justify-between items-center">
+                    <span class="font-pixel text-[10px] text-slate-100 truncate">${upg.name}</span>
+                    <span class="font-pixel text-[9px] text-slate-400 ml-1">Lvl ${upg.level}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400">${upg.desc}</div>
+                  <div class="font-pixel text-[9px] text-amber-400 mt-0.5">🟡 ${this.formatNumber(cost)}</div>
+                </div>
+              </div>
+              <button onclick="game.buyUpgrade('${upg.id}')" ${canAfford ? '' : 'disabled'} 
+                      class="pixel-btn ${canAfford ? 'pixel-btn-green' : 'pixel-btn-dark'} px-2.5 py-1.5 text-[10px] flex-shrink-0">
+                BUY
+              </button>
+            `;
+            container.appendChild(card);
+          });
+      }
+
+      updateUI() {
+        document.getElementById('pixelsVal').innerText = this.formatNumber(Math.floor(this.state.pixels));
+        document.getElementById('playerLevelVal').innerText = this.state.level;
+        document.getElementById('tierName').innerText = this.getArmorName();
+
+        const xpNeeded = this.state.level * 100;
+        document.getElementById('xpText').innerText = `${Math.floor(this.state.xp)} / ${xpNeeded} XP`;
+        document.getElementById('xpBar').style.width = `${Math.min(100, (this.state.xp / xpNeeded) * 100)}%`;
+
+        document.getElementById('ppsVal').innerText = this.getPPS().toFixed(1);
+        document.getElementById('powerVal').innerText = this.formatNumber(this.getMinePower());
+        document.getElementById('critVal').innerText = `${Math.round(this.getCritChance() * 100)}%`;
+        document.getElementById('multVal').innerText = `${this.state.multiplier.toFixed(1)}x`;
+
+        // Cooldowns
+        const cdKeys = ['dynamite', 'overclock', 'magnet', 'laser'];
+        cdKeys.forEach((k, idx) => {
+          const cdEl = document.getElementById(`cd${idx + 1}`);
+          const cdVal = this.state.cooldowns[k];
+          if (cdVal > 0) {
+            cdEl.classList.remove('hidden');
+            cdEl.innerText = `${Math.ceil(cdVal)}s`;
+          } else {
+            cdEl.classList.add('hidden');
+          }
+        });
+
+        // Buff Badges
+        const buffsContainer = document.getElementById('buffsContainer');
+        buffsContainer.innerHTML = '';
+        let hasBuffs = false;
+
+        Object.keys(this.state.activeBuffs).forEach(b => {
+          if (this.state.activeBuffs[b] > 0) {
+            hasBuffs = true;
+            const badge = document.createElement('span');
+            badge.className = "bg-amber-500/20 border border-amber-400 text-amber-300 px-1.5 py-0.5 rounded font-pixel text-[8px]";
+            badge.innerText = `${b.toUpperCase()}: ${Math.ceil(this.state.activeBuffs[b])}s`;
+            buffsContainer.appendChild(badge);
+          }
+        });
+
+        if (!hasBuffs) {
+          buffsContainer.innerHTML = `<span class="text-slate-500 italic text-xs">No active buffs</span>`;
+        }
+
+        // Prestige Button State
+        const prestigeBtn = document.getElementById('prestigeBtn');
+        if (this.state.pixels >= 100000) {
+          prestigeBtn.disabled = false;
+          prestigeBtn.innerText = "💎 Prestige Ready!";
+        } else {
+          prestigeBtn.disabled = true;
+          prestigeBtn.innerText = "🔒 Prestige (100k Pixels)";
+        }
+
+        this.renderUpgradesList();
+      }
+
+      addLog(msg) {
+        const log = document.getElementById('eventLog');
+        if (!log) return;
+        const entry = document.createElement('div');
+        entry.innerHTML = `<span class="text-slate-500">•</span> ${msg}`;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      toggleSound() {
+        this.sound.enabled = !this.sound.enabled;
+        document.getElementById('soundIcon').innerText = this.sound.enabled ? "🔊" : "🔇";
+        document.getElementById('soundText').innerText = this.sound.enabled ? "SOUND" : "MUTED";
+      }
+
+      openHelpModal() { document.getElementById('helpModal').classList.remove('hidden'); }
+      closeHelpModal() { document.getElementById('helpModal').classList.add('hidden'); }
+
+      openPrestigeModal() {
+        document.getElementById('modalCurrentMult').innerText = `${this.state.multiplier.toFixed(1)}x`;
+        document.getElementById('modalNewMult').innerText = `${(this.state.multiplier + 0.5).toFixed(1)}x`;
+        document.getElementById('prestigeModal').classList.remove('hidden');
+      }
+      closePrestigeModal() { document.getElementById('prestigeModal').classList.add('hidden'); }
+
+      executePrestige() {
+        this.state.multiplier += 0.5;
+        this.state.prestigeCount += 1;
+        this.state.pixels = 0;
+        this.state.depth = 0;
+        this.state.level = 1;
+        this.state.xp = 0;
+
+        Object.keys(this.state.upgrades).forEach(k => {
+          this.state.upgrades[k].level = 0;
+        });
+
+        this.closePrestigeModal();
+        this.addLog(`💎 REBIRTH! Multiplier boosted to ${this.state.multiplier.toFixed(1)}x`);
+        this.saveGame(true);
+        this.updateUI();
+      }
+
+      openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+      closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+
+      confirmHardReset() {
+        localStorage.removeItem('pixel_miner_evolution_save');
+        location.reload();
+      }
+
+      saveGame(showToast = false) {
+        try {
+          localStorage.setItem('pixel_miner_evolution_save', JSON.stringify(this.state));
+          if (showToast) {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+          }
+        } catch (e) {}
+      }
+
+      loadGame() {
+        try {
+          const saved = localStorage.getItem('pixel_miner_evolution_save');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            this.state = { ...this.state, ...parsed };
+            if (parsed.upgrades) {
+              Object.keys(parsed.upgrades).forEach(k => {
+                if (this.state.upgrades[k]) {
+                  this.state.upgrades[k].level = parsed.upgrades[k].level || 0;
+                }
+              });
+            }
+          }
+        } catch (e) {}
+      }
+
+      formatNumber(num) {
+        if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+        return num.toLocaleString();
+      }
+    }
+
+    let game;
+    window.onload = () => {
+      game = new PixelMinerGame();
+      game.init();
+    };
+  </script>
+
+</body>
+</html>
